@@ -1,3 +1,5 @@
+import secrets
+
 from htmltreediff.util import (
     parse_minidom,
     parse_text,
@@ -24,8 +26,8 @@ def diff(old_html, new_html, cutoff=0.0, plaintext=False, pretty=False):
         new_dom = parse_minidom(new_html)
 
     # If the two documents are not similar enough, don't show the changes.
-    if not check_text_similarity(old_dom, new_dom, cutoff):
-        return '<h2>The differences from the previous version are too large to show concisely.</h2>'
+    # if not check_text_similarity(old_dom, new_dom, cutoff):
+    #     return '<h2>The differences from the previous version are too large to show concisely.</h2>'
 
     dom = dom_diff(old_dom, new_dom)
 
@@ -39,7 +41,11 @@ def diff(old_html, new_html, cutoff=0.0, plaintext=False, pretty=False):
     if len(body_elements) == 1:
         dom = body_elements[0]
 
-    return minidom_tostring(dom, pretty=pretty)
+    output_filename = f"output_{secrets.token_urlsafe(6)}.html"
+    f = open(output_filename, "w")
+    f.write(minidom_tostring(dom, pretty=pretty))
+    f.close()
+    return output_filename
 
 def fix_lists(dom):
     # <ins> and <del> tags are not allowed within <ul> or <ol> tags.
@@ -91,4 +97,3 @@ def fix_tables(dom):
         parent = node.parentNode
         if parent.tagName in ['table', 'tbody', 'thead', 'tfoot', 'tr']:
             remove_node(node)
-
